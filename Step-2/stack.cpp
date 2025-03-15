@@ -1,8 +1,8 @@
 #include "slink.h"
 bool check(char *str)
 {
-  //在这里补全代码
-  /****begin*****/
+    // 在这里补全代码
+    /****begin*****/
     sqstack S;
     initstack(S);
 
@@ -24,13 +24,14 @@ bool check(char *str)
 
             if ((ch == ')' && topChar != '(') ||
                 (ch == ']' && topChar != '[') ||
-                (ch == '}' && topChar != '{')) {
+                (ch == '}' && topChar != '{'))
+            {
                 return false;
             }
         }
     }
 
     return isempty(S);
-  
-  /****end******/
+
+    /****end******/
 }
