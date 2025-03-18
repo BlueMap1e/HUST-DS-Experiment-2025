@@ -89,7 +89,6 @@ void sortList(ListNode **head) // 链表排序，按频率降序
         {
             if (ptr1->frequency < ptr1->next->frequency)
             {
-                // 交换频率
                 int tempFreq = ptr1->frequency;
                 char tempChar = ptr1->c;
 
