@@ -2,8 +2,10 @@
 // 示例仅供参考，你也可以自行修改设计
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_STRLEN 8192 // 自定义的一个硬编码最大字符串长度，可调整
+#define MAX_CODELEN 256 // 假定编码长度不会超过256位
 
 typedef struct ListNode // 结点结构，哈夫曼树与频度链表共用
 {
@@ -149,6 +151,141 @@ void readInput(char *cString) // 读取输入，包含空格、换行等
     cString[index] = '\0';
 }
 
+void findTwoMinNodes(ListNode *head, ListNode **firstMin, ListNode **secondMin) // 寻找频度链表中目前存在的，没有父节点的，频度最小的两个节点
+{
+    *firstMin = *secondMin = NULL;
+
+    for (ListNode *cur = head; cur != NULL; cur = cur->next)
+    {
+        if (cur->parent == NULL)
+        {
+            if (*firstMin == NULL || cur->frequency < (*firstMin)->frequency)
+            {
+                *secondMin = *firstMin;
+                *firstMin = cur;
+            }
+            else if (*secondMin == NULL || cur->frequency < (*secondMin)->frequency)
+            {
+                *secondMin = cur;
+            }
+        }
+    }
+}
+
+ListNode *createParentNode(ListNode *firstMin, ListNode *secondMin) // 根据找到的频度最小的两个节点，构建一个父节点，返回它
+{
+    ListNode *parent = (ListNode *)malloc(sizeof(ListNode));
+    parent->c = '\0';
+    parent->frequency = firstMin->frequency + secondMin->frequency;
+    parent->left = firstMin;
+    parent->right = secondMin;
+    parent->parent = NULL;
+    parent->next = NULL;
+
+    firstMin->parent = parent;
+    secondMin->parent = parent;
+
+    return parent;
+}
+
+void insertNode(ListNode **head, ListNode *newNode) // 向频度链表中插入新生成的父节点，保持降序顺序
+{
+    if (*head == NULL || (*head)->frequency < newNode->frequency)
+    {
+        newNode->next = *head;
+        *head = newNode;
+    }
+    else
+    {
+        ListNode *cur = *head;
+        while (cur->next != NULL && cur->next->frequency > newNode->frequency)
+        {
+            cur = cur->next;
+        }
+        newNode->next = cur->next;
+        cur->next = newNode;
+    }
+}
+
+ListNode *buildHuffmanTree(ListNode **head) // 构建哈夫曼树，每次选取频度最小的两个节点，合成父节点，插入频度链表，直到只剩下一个节点
+{
+    while ((*head)->next != NULL)
+    {
+        ListNode *firstMin, *secondMin;
+        findTwoMinNodes(*head, &firstMin, &secondMin);
+
+        if (secondMin == NULL)
+        {
+            break;
+        }
+
+        ListNode *parent = createParentNode(firstMin, secondMin);
+
+        insertNode(head, parent);
+    }
+    return *head;
+}
+
+void generateHuffmanCodes(ListNode *node, char *code, int depth)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+    if (node->left == NULL && node->right == NULL)
+    {
+        node->code = (char *)malloc(depth + 1);
+        strncpy(node->code, code, depth);
+        node->code[depth] = '\0';
+        return;
+    }
+
+    code[depth] = '0';
+    generateHuffmanCodes(node->left, code, depth + 1);
+
+    code[depth] = '1';
+    generateHuffmanCodes(node->right, code, depth + 1);
+}
+
+void printHuffmanTable(ListNode *head)
+{
+    while (head != NULL)
+    {
+        if (head->code != NULL && head->c != '\0')
+        {
+            if (head->c != '\n')
+                printf("'%c' %d %s\n", head->c, head->frequency, head->code);
+            else
+                printf("'\\n' %d %s\n", head->frequency, head->code);
+        }
+        head = head->next;
+    }
+}
+
+int calculateWPL(ListNode *node, int depth)
+{
+    if (node == NULL)
+        return 0;
+
+    if (node->left == NULL && node->right == NULL)
+    {
+        return node->frequency * depth;
+    }
+
+    return calculateWPL(node->left, depth + 1) + calculateWPL(node->right, depth + 1);
+}
+
+void freeHuffmanTree(ListNode *node)
+{
+    if (node == NULL)
+        return;
+    freeHuffmanTree(node->left);
+    freeHuffmanTree(node->right);
+    if (node->code)
+        free(node->code);
+    free(node);
+}
+
 int main()
 {
     char inputText[MAX_STRLEN];
@@ -158,9 +295,19 @@ int main()
 
     countFrequencies(inputText, &head);
     sortList(&head);
-    printList(head);
+    // printList(head);
 
-    freeList(head);
+    ListNode *root = buildHuffmanTree(&head);
+
+    char code[MAX_CODELEN];
+    generateHuffmanCodes(root, code, 0);
+
+    printHuffmanTable(head);
+
+    int WPL = calculateWPL(root, 0);
+    printf("%d", WPL);
+
+    freeHuffmanTree(root);
     return 0;
 }
 // Your code end.
