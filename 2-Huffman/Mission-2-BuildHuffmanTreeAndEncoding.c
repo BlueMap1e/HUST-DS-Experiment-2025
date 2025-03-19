@@ -226,7 +226,7 @@ ListNode *buildHuffmanTree(ListNode **head) // 构建哈夫曼树，每次选取
     return *head;
 }
 
-void generateHuffmanCodes(ListNode *node, char *code, int depth)
+void generateHuffmanCodes(ListNode *node, char *code, int depth)    // 遍历哈夫曼树，生成哈夫曼编码
 {
     if (node == NULL)
     {
@@ -247,7 +247,7 @@ void generateHuffmanCodes(ListNode *node, char *code, int depth)
     generateHuffmanCodes(node->right, code, depth + 1);
 }
 
-void printHuffmanTable(ListNode *head)
+void printHuffmanTable(ListNode *head)  // 打印哈夫曼编码表（临时打印，用的遍历）
 {
     while (head != NULL)
     {
@@ -262,7 +262,7 @@ void printHuffmanTable(ListNode *head)
     }
 }
 
-int calculateWPL(ListNode *node, int depth)
+int calculateWPL(ListNode *node, int depth) // 计算WPL
 {
     if (node == NULL)
         return 0;
@@ -275,7 +275,7 @@ int calculateWPL(ListNode *node, int depth)
     return calculateWPL(node->left, depth + 1) + calculateWPL(node->right, depth + 1);
 }
 
-void freeHuffmanTree(ListNode *node)
+void freeHuffmanTree(ListNode *node)    // 释放哈夫曼树的内存空间
 {
     if (node == NULL)
         return;
